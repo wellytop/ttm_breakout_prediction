@@ -19,7 +19,7 @@ from sklearn.metrics import accuracy_score
 # In[3]:
 
 
-#Load Raw data from the disk
+print("Load features from the disk")
 with (open("all_features.pickle", "rb")) as openfile:
     while True:
         try:
@@ -36,6 +36,7 @@ svm_input_X = []
 svm_input_Y = []
 
 
+print("get model input")
 for ticker in all_features.keys():
     count +=1
     for feature in all_features[ticker].keys():
@@ -66,18 +67,18 @@ X_train, X_test, y_train, y_test = train_test_split(svm_input_X, svm_input_Y, te
 # In[21]:
 
 
-tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
-                     'C': [1, 10, 100, 1000]},
-                    {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
+tuned_parameters = [{'kernel': ['linear', 'poly', 'rbf', 'sigmoid'], 'gamma': [1e-2,1e-3, 1e-4],
+                     'C': [1, 10, 100, 1000]}]
 
-svm = GridSearchCV(SVC(kernel='linear', gamma=0.1), cv=5,
+print("train model")
+svm = GridSearchCV(SVC(), cv=5,
                     param_grid=tuned_parameters,n_jobs = 6)
 svm.fit(X_train,y_train)
 
 
 # In[22]:
 
-
+print("predict")
 y_pred = svm.predict(X_test)
 correct = accuracy_score(y_test, y_pred, normalize=False)
 print(len(y_pred) == len(y_test))
