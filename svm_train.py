@@ -10,17 +10,11 @@ from sklearn.model_selection import train_test_split,GridSearchCV
 from sklearn.metrics import accuracy_score
 
 
-# In[ ]:
+# In[13]:
 
 
-
-
-
-# In[3]:
-
-
-print("Load features from the disk")
-with (open("all_features.pickle", "rb")) as openfile:
+#Load Raw data from the disk
+with (open("all_features_575.pickle", "rb")) as openfile:
     while True:
         try:
             all_features = pickle.load(openfile)
@@ -28,7 +22,7 @@ with (open("all_features.pickle", "rb")) as openfile:
             break
 
 
-# In[19]:
+# In[15]:
 
 
 count  = 0
@@ -36,10 +30,11 @@ svm_input_X = []
 svm_input_Y = []
 
 
-print("get model input")
 for ticker in all_features.keys():
     count +=1
     for feature in all_features[ticker].keys():
+        print(ticker)
+        print(feature)
         stock_df = all_features[ticker][feature]["data"]
         label = all_features[ticker][feature]["label"]
         ind = stock_df.index.get_loc(0)
@@ -52,11 +47,10 @@ for ticker in all_features.keys():
             #print(len(time_series[0]))
             svm_input_X.append(time_series[0])
             svm_input_Y.append(label)
-    if(count>4):
-        break
+ 
 
 
-# In[20]:
+# In[16]:
 
 
 
@@ -64,7 +58,13 @@ X_train, X_test, y_train, y_test = train_test_split(svm_input_X, svm_input_Y, te
                                                     random_state=42)
 
 
-# In[21]:
+# In[18]:
+
+
+len(svm_input_X)
+
+
+# In[19]:
 
 
 tuned_parameters = [{'kernel': ['linear', 'poly', 'rbf', 'sigmoid'], 'gamma': [1e-2,1e-3, 1e-4],
@@ -72,13 +72,13 @@ tuned_parameters = [{'kernel': ['linear', 'poly', 'rbf', 'sigmoid'], 'gamma': [1
 
 print("train model")
 svm = GridSearchCV(SVC(), cv=5,
-                    param_grid=tuned_parameters,n_jobs = 6)
+                    param_grid=tuned_parameters,n_jobs = 6,verbose = 4)
 svm.fit(X_train,y_train)
 
 
 # In[22]:
 
-print("predict")
+
 y_pred = svm.predict(X_test)
 correct = accuracy_score(y_test, y_pred, normalize=False)
 print(len(y_pred) == len(y_test))

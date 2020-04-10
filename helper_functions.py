@@ -100,6 +100,7 @@ def save_figure(stock_target, name, label):
     fname = os.getcwd() + "/stock_png_plot/" + name + ".png"
 
     plt.savefig(fname)
+    plt.close()
 
     return plt
 
@@ -186,4 +187,4 @@ def get_label(stock_df):
     else:
         label = "ambiguous"
 
-    return label
+    return label,r_value
