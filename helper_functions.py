@@ -8,6 +8,7 @@ from sklearn import linear_model
 from bs4 import BeautifulSoup
 import re
 from requests import get
+import requests
 
 
 regr = linear_model.LinearRegression()
@@ -34,6 +35,10 @@ def bbands(df, window_size=20, num_of_std=2):
 
 
 def save_figure(stock_target, name, label):
+
+    """
+        Create figure for each set up day.
+    """
 
     fig = plt.figure(figsize=(16, 10))
 
@@ -192,50 +197,54 @@ def get_label(stock_df):
     else:
         label = "ambiguous"
 
-    return label,r_value
+    return label, r_value
 
 
 def get_filing_dates_quarterly(ticker):
+    """
+        Find the filing dates for each ticker and return as list.
+    """
 
-    URL = 'http://www.sec.gov/cgi-bin/browse-edgar?CIK={}&Find=Search&owner=exclude&action=getcompany'
-    CIK_RE = re.compile(r'.*CIK=(\d{10}).*')
+    URL = "http://www.sec.gov/cgi-bin/browse-edgar?CIK={}&Find=Search&owner=exclude&action=getcompany"
+    CIK_RE = re.compile(r".*CIK=(\d{10}).*")
     results = CIK_RE.findall(str(get(URL.format(ticker)).content))
-    if(len(results)):
+    if len(results):
         cik = results[0]
-
+    else:
+        return []
     # base URL for the SEC EDGAR browser
     endpoint = r"https://www.sec.gov/cgi-bin/browse-edgar"
 
     # define our parameters dictionary
-    param_dict = {'action':'getcompany',
-                  'CIK':cik,
-                  'type':'10-Q',
-                  'dateb':'20190101',
-                  'owner':'exclude',
-                  'start':'',
-                  'output':'',
-                  'count':'100'}
+    param_dict = {
+        "action": "getcompany",
+        "CIK": cik,
+        "type": "10-Q",
+        "dateb": "20190101",
+        "owner": "exclude",
+        "start": "",
+        "output": "",
+        "count": "100",
+    }
 
     # request the url, and then parse the response.
-    response = requests.get(url = endpoint, params = param_dict)
-    soup = BeautifulSoup(response.content, 'html.parser')
+    response = requests.get(url=endpoint, params=param_dict)
+    soup = BeautifulSoup(response.content, "html.parser")
 
     # find the document table with our data
-    doc_table = soup.find_all('table', class_='tableFile2')
+    doc_table = soup.find_all("table", class_="tableFile2")
 
     # define a base url that will be used for link building.
     base_url_sec = r"https://www.sec.gov"
 
     filing_date_list = []
     # loop through each row in the table.
-    for row in doc_table[0].find_all('tr'):
+    for row in doc_table[0].find_all("tr"):
         # find all the columns
-        cols = row.find_all('td')
+        cols = row.find_all("td")
         # if there are no columns move on to the next row.
-        if len(cols) != 0:                         
+        if len(cols) != 0:
             filing_date = cols[3].text.strip()
             filing_date_list.append(filing_date)
-    
-    
+
     return filing_date_list
-    
